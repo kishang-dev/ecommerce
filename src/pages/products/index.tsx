@@ -4,17 +4,17 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/store/store'
-import { setCartProducts, setProducts } from '@/store/reducer/productSlice'
+import { setCartProducts, setProducts, setUpdateDecressQuintiy, setUpdateIncressQuintiy } from '@/store/reducer/productSlice'
 
 
 const index = () => {
 
-  const {products,cartProduct} = useSelector((state: any) => state?.product)
+  const { products, cartProduct } = useSelector((state: any) => state?.product)
   const columnHelper = createColumnHelper<any>()
-  console.log("cartProduct",cartProduct)
-  
+  console.log("cartProduct", cartProduct)
+
   const router = useRouter()
-const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>()
 
   const fetchProducts = () => {
 
@@ -22,7 +22,7 @@ const dispatch = useDispatch<AppDispatch>()
       .then(async (res) => {
 
         const newproducts = await res.json()
-   dispatch(setProducts(newproducts?.products))
+        dispatch(setProducts(newproducts?.products))
       }
 
 
@@ -61,25 +61,60 @@ const dispatch = useDispatch<AppDispatch>()
 
     columnHelper.accessor('action', {
       header: () => 'Action',
-      cell:( {row}) => {
-        return(
-          <button onClick={()=>{
+      cell: ({ row }) => {
+        const isInCart = cartProduct.find((item: any) => item.id == row.original.id)
+
+        console.log("isInCart", isInCart)
+
+        return (
+          <div>
+
+            {isInCart?.id ?
+
+              <div className='flex gap-2'>
+                <button onClick={() => dispatch(setUpdateDecressQuintiy(row.original))}>
+                  -
+                </button>
+
+                <div> { isInCart?.minimumOrderQuantity}</div>
+                <button onClick={() => dispatch(setUpdateIncressQuintiy(row.original))} >
+                  +
+                </button>
+              </div>
+              :
 
 
-            dispatch(setCartProducts(row.original))
-         
-                }}>AddToCart</button>
+              <button onClick={() => {
+
+
+                dispatch(setCartProducts(row.original))
+
+              }}>AddToCart</button>
+
+
+
+            }
+
+
+
+          </div>
         )
       },
       footer: info => info.column.id,
     }),
   ]
 
-console.log("products",products)
+  console.log("products", products)
   return (
     <div>
 
-<button onClick={()=>router.push("/products/manage")}>AddProduct</button>
+      <h1>Cart Item</h1>
+      {cartProduct?.map((item: any) => (<div>
+        {item.title}
+        {item.minimumOrderQuantity}
+      </div>
+
+      ))}
 
       <Table columns={columns} defaultData={products} />
 
